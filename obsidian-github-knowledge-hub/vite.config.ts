@@ -12,6 +12,10 @@ const __dirname = path.dirname(__filename);
 export default defineConfig({
   plugins: [react(), tailwindcss(), viteSingleFile()],
   base: "/testhub/",
+  server: {
+    port: 3000,
+    host: true,
+  },
   build: {
     outDir: "dist",
     emptyOutDir: true,
