@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
 import {
   Workspace,
   Block,
@@ -14,53 +13,107 @@ import {
   createCardItem,
   createLinkItem,
   createCommandItem,
-  createInitialWorkspace,
 } from '@/types';
 
-interface WorkspaceState {
+// Initial workspace
+const initialWorkspace = createWorkspace({ name: 'Personal', icon: '🏠' });
+const notesBlock = createBlock('folders', initialWorkspace.id, { name: 'Notes' });
+const cardsBlock = createBlock('cards', initialWorkspace.id, { name: 'Tasks' });
+const linksBlock = createBlock('links', initialWorkspace.id, { name: 'Bookmarks' });
+initialWorkspace.blocks = [notesBlock, cardsBlock, linksBlock];
+
+// Sample data
+const sampleFolderItems: FolderItem[] = [
+  createFolderItem(notesBlock.id, {
+    id: 'welcome',
+    name: 'Welcome to Knowledge Hub',
+    type: 'note',
+    content: `# Welcome to Knowledge Hub 📚
+
+This is your personal knowledge base!
+
+## Features
+- **Wikilinks**: Link notes using [[Note Name]] syntax
+- **Graph View**: Visualize connections
+- **Multiple Block Types**: Notes, Cards, Links, Commands
+
+Happy note-taking! 🎉`,
+    tags: ['welcome'],
+    order: 0,
+  }),
+  createFolderItem(notesBlock.id, {
+    id: 'getting-started',
+    name: 'Getting Started',
+    type: 'note',
+    content: `# Getting Started
+
+Welcome! Create notes, cards, and links to organize your knowledge.`,
+    tags: ['tutorial'],
+    order: 1,
+  }),
+];
+
+const sampleCardItems: CardItem[] = [
+  createCardItem(cardsBlock.id, {
+    id: 'card-1',
+    title: 'Explore features',
+    content: 'Try creating notes and cards',
+    color: '#6366f1',
+    priority: 'medium',
+    completed: false,
+    tags: [],
+    order: 0,
+  }),
+];
+
+const sampleLinkItems: LinkItem[] = [
+  createLinkItem(linksBlock.id, {
+    id: 'link-1',
+    title: 'GitHub',
+    url: 'https://github.com',
+    description: 'Where the world builds software',
+    category: 'Dev',
+    tags: [],
+    order: 0,
+  }),
+];
+
+interface State {
   workspaces: Workspace[];
   activeWorkspaceId: string | null;
   activeBlockId: string | null;
   activeItemId: string | null;
-  
   folderItems: FolderItem[];
   cardItems: CardItem[];
   linkItems: LinkItem[];
   commandItems: CommandItem[];
   
+  setActiveWorkspace: (id: string) => void;
+  setActiveBlock: (id: string | null) => void;
+  setActiveItem: (id: string | null) => void;
   addWorkspace: (partial?: Partial<Workspace>) => Workspace;
   updateWorkspace: (id: string, updates: Partial<Workspace>) => void;
   deleteWorkspace: (id: string) => void;
-  setActiveWorkspace: (id: string) => void;
-  getWorkspace: (id: string) => Workspace | undefined;
-  
   addBlock: (type: BlockType, workspaceId: string, partial?: Partial<Block>) => Block;
   updateBlock: (id: string, updates: Partial<Block>) => void;
   deleteBlock: (id: string) => void;
-  setActiveBlock: (id: string | null) => void;
   getBlock: (id: string) => Block | undefined;
   getBlocksByWorkspace: (workspaceId: string) => Block[];
-  
-  setActiveItem: (id: string | null) => void;
-  
   addFolderItem: (blockId: string, partial?: Partial<FolderItem>) => FolderItem;
   updateFolderItem: (id: string, updates: Partial<FolderItem>) => void;
   deleteFolderItem: (id: string) => void;
   getFolderItemsByBlock: (blockId: string) => FolderItem[];
   getFolderItem: (id: string) => FolderItem | undefined;
-  
   addCardItem: (blockId: string, partial?: Partial<CardItem>) => CardItem;
   updateCardItem: (id: string, updates: Partial<CardItem>) => void;
   deleteCardItem: (id: string) => void;
   getCardItemsByBlock: (blockId: string) => CardItem[];
   getCardItem: (id: string) => CardItem | undefined;
-  
   addLinkItem: (blockId: string, partial?: Partial<LinkItem>) => LinkItem;
   updateLinkItem: (id: string, updates: Partial<LinkItem>) => void;
   deleteLinkItem: (id: string) => void;
   getLinkItemsByBlock: (blockId: string) => LinkItem[];
   getLinkItem: (id: string) => LinkItem | undefined;
-  
   addCommandItem: (blockId: string, partial?: Partial<CommandItem>) => CommandItem;
   updateCommandItem: (id: string, updates: Partial<CommandItem>) => void;
   deleteCommandItem: (id: string) => void;
@@ -68,353 +121,203 @@ interface WorkspaceState {
   getCommandItem: (id: string) => CommandItem | undefined;
 }
 
-// Create initial sample data
-const initialWorkspace = createInitialWorkspace();
+export const useWorkspaceStore = create<State>()((set, get) => ({
+  workspaces: [initialWorkspace],
+  activeWorkspaceId: initialWorkspace.id,
+  activeBlockId: notesBlock.id,
+  activeItemId: 'welcome',
+  folderItems: sampleFolderItems,
+  cardItems: sampleCardItems,
+  linkItems: sampleLinkItems,
+  commandItems: [],
 
-const sampleFolderItems: FolderItem[] = [
-  createFolderItem(initialWorkspace.blocks[0].id, {
-    id: 'welcome',
-    name: 'Welcome to Knowledge Hub',
-    type: 'note',
-    content: `# Welcome to Knowledge Hub 📚
+  setActiveWorkspace: (id) => {
+    const workspace = get().workspaces.find(w => w.id === id);
+    set({
+      activeWorkspaceId: id,
+      activeBlockId: workspace?.blocks[0]?.id || null,
+      activeItemId: null,
+    });
+  },
 
-This is your personal knowledge base with Obsidian-like features!
+  setActiveBlock: (id) => set({ activeBlockId: id, activeItemId: null }),
+  setActiveItem: (id) => set({ activeItemId: id }),
 
-## Key Features
+  addWorkspace: (partial) => {
+    const workspace = createWorkspace(partial);
+    set(state => ({ workspaces: [...state.workspaces, workspace] }));
+    return workspace;
+  },
 
-- **Wikilinks**: Link notes using [[Getting Started]] syntax
-- **Backlinks**: See all notes that link to the current note
-- **Graph View**: Visualize connections between notes
-- **Multiple Block Types**: Notes, Cards, Links, Commands
-- **Workspaces**: Organize everything by project
+  updateWorkspace: (id, updates) => {
+    set(state => ({
+      workspaces: state.workspaces.map(w => 
+        w.id === id ? { ...w, ...updates, updatedAt: new Date().toISOString() } : w
+      ),
+    }));
+  },
 
-## Quick Tips
+  deleteWorkspace: (id) => {
+    set(state => {
+      const newWorkspaces = state.workspaces.filter(w => w.id !== id);
+      const newActiveId = state.activeWorkspaceId === id 
+        ? newWorkspaces[0]?.id || null 
+        : state.activeWorkspaceId;
+      return {
+        workspaces: newWorkspaces,
+        activeWorkspaceId: newActiveId,
+        activeBlockId: null,
+        activeItemId: null,
+      };
+    });
+  },
 
-1. Create new blocks in the sidebar
-2. Use \`[[Note Name]]\` to link to other notes
-3. Add tags like #tutorial #welcome
-4. Switch between workspaces in the header
+  addBlock: (type, workspaceId, partial) => {
+    const block = createBlock(type, workspaceId, partial);
+    set(state => ({
+      workspaces: state.workspaces.map(w => 
+        w.id === workspaceId 
+          ? { ...w, blocks: [...w.blocks, block], updatedAt: new Date().toISOString() }
+          : w
+      ),
+    }));
+    return block;
+  },
 
-Happy note-taking! 🎉`,
-    tags: ['welcome', 'tutorial'],
-    order: 0,
-  }),
-  createFolderItem(initialWorkspace.blocks[0].id, {
-    id: 'getting-started',
-    name: 'Getting Started',
-    type: 'note',
-    content: `# Getting Started
+  updateBlock: (id, updates) => {
+    set(state => ({
+      workspaces: state.workspaces.map(w => ({
+        ...w,
+        blocks: w.blocks.map(b => 
+          b.id === id ? { ...b, ...updates, updatedAt: new Date().toISOString() } : b
+        ),
+      })),
+    }));
+  },
 
-Welcome to your knowledge journey! This note will help you get started.
+  deleteBlock: (id) => {
+    set(state => {
+      const newWorkspaces = state.workspaces.map(w => ({
+        ...w,
+        blocks: w.blocks.filter(b => b.id !== id),
+      }));
+      return {
+        workspaces: newWorkspaces,
+        folderItems: state.folderItems.filter(i => i.blockId !== id),
+        cardItems: state.cardItems.filter(i => i.blockId !== id),
+        linkItems: state.linkItems.filter(i => i.blockId !== id),
+        commandItems: state.commandItems.filter(i => i.blockId !== id),
+        activeBlockId: state.activeBlockId === id ? null : state.activeBlockId,
+        activeItemId: state.activeBlockId === id ? null : state.activeItemId,
+      };
+    });
+  },
 
-## Creating Content
+  getBlock: (id) => {
+    for (const w of get().workspaces) {
+      const block = w.blocks.find(b => b.id === id);
+      if (block) return block;
+    }
+    return undefined;
+  },
 
-You can create different types of content:
-1. **Notes** - Markdown documents with wikilinks
-2. **Cards** - Quick capture cards for tasks/ideas
-3. **Links** - Bookmark manager with descriptions
-4. **Commands** - Save and organize shell commands
+  getBlocksByWorkspace: (workspaceId) => {
+    return get().workspaces.find(w => w.id === workspaceId)?.blocks || [];
+  },
 
-See also: [[Welcome to Knowledge Hub]]`,
-    tags: ['getting-started', 'tutorial'],
-    order: 1,
-  }),
-];
+  addFolderItem: (blockId, partial) => {
+    const item = createFolderItem(blockId, partial);
+    set(state => ({ folderItems: [...state.folderItems, item] }));
+    return item;
+  },
 
-const sampleCardItems: CardItem[] = [
-  createCardItem(initialWorkspace.blocks[1].id, {
-    id: 'card-1',
-    title: 'Set up Knowledge Hub',
-    content: 'Configure GitHub sync and create initial workspace structure',
-    color: '#22c55e',
-    priority: 'high',
-    completed: true,
-    tags: ['setup'],
-    order: 0,
-  }),
-  createCardItem(initialWorkspace.blocks[1].id, {
-    id: 'card-2',
-    title: 'Explore features',
-    content: 'Try creating notes, cards, and links.',
-    color: '#6366f1',
-    priority: 'medium',
-    completed: false,
-    tags: ['learning'],
-    order: 1,
-  }),
-];
+  updateFolderItem: (id, updates) => {
+    set(state => ({
+      folderItems: state.folderItems.map(i => 
+        i.id === id ? { ...i, ...updates, updatedAt: new Date().toISOString() } : i
+      ),
+    }));
+  },
 
-const sampleLinkItems: LinkItem[] = [
-  createLinkItem(initialWorkspace.blocks[2].id, {
-    id: 'link-1',
-    title: 'Obsidian',
-    url: 'https://obsidian.md',
-    description: 'A powerful knowledge base',
-    category: 'Tools',
-    tags: ['productivity', 'notes'],
-    order: 0,
-  }),
-  createLinkItem(initialWorkspace.blocks[2].id, {
-    id: 'link-2',
-    title: 'GitHub',
-    url: 'https://github.com',
-    description: 'Where the world builds software',
-    category: 'Development',
-    tags: ['dev', 'git'],
-    order: 1,
-  }),
-];
+  deleteFolderItem: (id) => {
+    set(state => ({
+      folderItems: state.folderItems.filter(i => i.id !== id),
+      activeItemId: state.activeItemId === id ? null : state.activeItemId,
+    }));
+  },
 
-export const useWorkspaceStore = create<WorkspaceState>()(
-  immer((set, get) => ({
-    workspaces: [initialWorkspace],
-    activeWorkspaceId: initialWorkspace.id,
-    activeBlockId: initialWorkspace.blocks[0].id,
-    activeItemId: 'welcome',
-    
-    folderItems: sampleFolderItems,
-    cardItems: sampleCardItems,
-    linkItems: sampleLinkItems,
-    commandItems: [],
-    
-    addWorkspace: (partial) => {
-      const workspace = createWorkspace(partial);
-      set((state) => {
-        state.workspaces.push(workspace);
-      });
-      return workspace;
-    },
-    
-    updateWorkspace: (id, updates) => {
-      set((state) => {
-        const workspace = state.workspaces.find((w) => w.id === id);
-        if (workspace) {
-          Object.assign(workspace, updates, { updatedAt: new Date().toISOString() });
-        }
-      });
-    },
-    
-    deleteWorkspace: (id) => {
-      set((state) => {
-        state.workspaces = state.workspaces.filter((w) => w.id !== id);
-        if (state.activeWorkspaceId === id) {
-          state.activeWorkspaceId = state.workspaces[0]?.id || null;
-          state.activeBlockId = null;
-          state.activeItemId = null;
-        }
-      });
-    },
-    
-    setActiveWorkspace: (id) => {
-      set((state) => {
-        state.activeWorkspaceId = id;
-        const workspace = state.workspaces.find((w) => w.id === id);
-        state.activeBlockId = workspace?.blocks[0]?.id || null;
-        state.activeItemId = null;
-      });
-    },
-    
-    getWorkspace: (id) => get().workspaces.find((w) => w.id === id),
-    
-    addBlock: (type, workspaceId, partial) => {
-      const block = createBlock(type, workspaceId, partial);
-      set((state) => {
-        const workspace = state.workspaces.find((w) => w.id === workspaceId);
-        if (workspace) {
-          workspace.blocks.push(block);
-          workspace.updatedAt = new Date().toISOString();
-        }
-      });
-      return block;
-    },
-    
-    updateBlock: (id, updates) => {
-      set((state) => {
-        for (const workspace of state.workspaces) {
-          const block = workspace.blocks.find((b) => b.id === id);
-          if (block) {
-            Object.assign(block, updates, { updatedAt: new Date().toISOString() });
-            workspace.updatedAt = new Date().toISOString();
-            break;
-          }
-        }
-      });
-    },
-    
-    deleteBlock: (id) => {
-      set((state) => {
-        for (const workspace of state.workspaces) {
-          const index = workspace.blocks.findIndex((b) => b.id === id);
-          if (index !== -1) {
-            workspace.blocks.splice(index, 1);
-            workspace.updatedAt = new Date().toISOString();
-            
-            state.folderItems = state.folderItems.filter((i) => i.blockId !== id);
-            state.cardItems = state.cardItems.filter((i) => i.blockId !== id);
-            state.linkItems = state.linkItems.filter((i) => i.blockId !== id);
-            state.commandItems = state.commandItems.filter((i) => i.blockId !== id);
-            
-            if (state.activeBlockId === id) {
-              state.activeBlockId = workspace.blocks[0]?.id || null;
-              state.activeItemId = null;
-            }
-            break;
-          }
-        }
-      });
-    },
-    
-    setActiveBlock: (id) => {
-      set((state) => {
-        state.activeBlockId = id;
-        state.activeItemId = null;
-      });
-    },
-    
-    getBlock: (id) => {
-      for (const workspace of get().workspaces) {
-        const block = workspace.blocks.find((b) => b.id === id);
-        if (block) return block;
-      }
-      return undefined;
-    },
-    
-    getBlocksByWorkspace: (workspaceId) => {
-      const workspace = get().workspaces.find((w) => w.id === workspaceId);
-      return workspace?.blocks || [];
-    },
-    
-    setActiveItem: (id) => {
-      set((state) => {
-        state.activeItemId = id;
-      });
-    },
-    
-    addFolderItem: (blockId, partial) => {
-      const item = createFolderItem(blockId, partial);
-      set((state) => {
-        state.folderItems.push(item);
-      });
-      return item;
-    },
-    
-    updateFolderItem: (id, updates) => {
-      set((state) => {
-        const item = state.folderItems.find((i) => i.id === id);
-        if (item) {
-          Object.assign(item, updates, { updatedAt: new Date().toISOString() });
-        }
-      });
-    },
-    
-    deleteFolderItem: (id) => {
-      set((state) => {
-        const toDelete = new Set<string>([id]);
-        let changed = true;
-        while (changed) {
-          changed = false;
-          for (const item of state.folderItems) {
-            if (item.parentId && toDelete.has(item.parentId) && !toDelete.has(item.id)) {
-              toDelete.add(item.id);
-              changed = true;
-            }
-          }
-        }
-        state.folderItems = state.folderItems.filter((i) => !toDelete.has(i.id));
-        if (state.activeItemId && toDelete.has(state.activeItemId)) {
-          state.activeItemId = null;
-        }
-      });
-    },
-    
-    getFolderItemsByBlock: (blockId) => get().folderItems.filter((i) => i.blockId === blockId),
-    getFolderItem: (id) => get().folderItems.find((i) => i.id === id),
-    
-    addCardItem: (blockId, partial) => {
-      const item = createCardItem(blockId, partial);
-      set((state) => {
-        state.cardItems.push(item);
-      });
-      return item;
-    },
-    
-    updateCardItem: (id, updates) => {
-      set((state) => {
-        const item = state.cardItems.find((i) => i.id === id);
-        if (item) {
-          Object.assign(item, updates, { updatedAt: new Date().toISOString() });
-        }
-      });
-    },
-    
-    deleteCardItem: (id) => {
-      set((state) => {
-        state.cardItems = state.cardItems.filter((i) => i.id !== id);
-        if (state.activeItemId === id) {
-          state.activeItemId = null;
-        }
-      });
-    },
-    
-    getCardItemsByBlock: (blockId) => get().cardItems.filter((i) => i.blockId === blockId),
-    getCardItem: (id) => get().cardItems.find((i) => i.id === id),
-    
-    addLinkItem: (blockId, partial) => {
-      const item = createLinkItem(blockId, partial);
-      set((state) => {
-        state.linkItems.push(item);
-      });
-      return item;
-    },
-    
-    updateLinkItem: (id, updates) => {
-      set((state) => {
-        const item = state.linkItems.find((i) => i.id === id);
-        if (item) {
-          Object.assign(item, updates, { updatedAt: new Date().toISOString() });
-        }
-      });
-    },
-    
-    deleteLinkItem: (id) => {
-      set((state) => {
-        state.linkItems = state.linkItems.filter((i) => i.id !== id);
-        if (state.activeItemId === id) {
-          state.activeItemId = null;
-        }
-      });
-    },
-    
-    getLinkItemsByBlock: (blockId) => get().linkItems.filter((i) => i.blockId === blockId),
-    getLinkItem: (id) => get().linkItems.find((i) => i.id === id),
-    
-    addCommandItem: (blockId, partial) => {
-      const item = createCommandItem(blockId, partial);
-      set((state) => {
-        state.commandItems.push(item);
-      });
-      return item;
-    },
-    
-    updateCommandItem: (id, updates) => {
-      set((state) => {
-        const item = state.commandItems.find((i) => i.id === id);
-        if (item) {
-          Object.assign(item, updates, { updatedAt: new Date().toISOString() });
-        }
-      });
-    },
-    
-    deleteCommandItem: (id) => {
-      set((state) => {
-        state.commandItems = state.commandItems.filter((i) => i.id !== id);
-        if (state.activeItemId === id) {
-          state.activeItemId = null;
-        }
-      });
-    },
-    
-    getCommandItemsByBlock: (blockId) => get().commandItems.filter((i) => i.blockId === blockId),
-    getCommandItem: (id) => get().commandItems.find((i) => i.id === id),
-  }))
-);
+  getFolderItemsByBlock: (blockId) => get().folderItems.filter(i => i.blockId === blockId),
+  getFolderItem: (id) => get().folderItems.find(i => i.id === id),
+
+  addCardItem: (blockId, partial) => {
+    const item = createCardItem(blockId, partial);
+    set(state => ({ cardItems: [...state.cardItems, item] }));
+    return item;
+  },
+
+  updateCardItem: (id, updates) => {
+    set(state => ({
+      cardItems: state.cardItems.map(i => 
+        i.id === id ? { ...i, ...updates, updatedAt: new Date().toISOString() } : i
+      ),
+    }));
+  },
+
+  deleteCardItem: (id) => {
+    set(state => ({
+      cardItems: state.cardItems.filter(i => i.id !== id),
+      activeItemId: state.activeItemId === id ? null : state.activeItemId,
+    }));
+  },
+
+  getCardItemsByBlock: (blockId) => get().cardItems.filter(i => i.blockId === blockId),
+  getCardItem: (id) => get().cardItems.find(i => i.id === id),
+
+  addLinkItem: (blockId, partial) => {
+    const item = createLinkItem(blockId, partial);
+    set(state => ({ linkItems: [...state.linkItems, item] }));
+    return item;
+  },
+
+  updateLinkItem: (id, updates) => {
+    set(state => ({
+      linkItems: state.linkItems.map(i => 
+        i.id === id ? { ...i, ...updates, updatedAt: new Date().toISOString() } : i
+      ),
+    }));
+  },
+
+  deleteLinkItem: (id) => {
+    set(state => ({
+      linkItems: state.linkItems.filter(i => i.id !== id),
+      activeItemId: state.activeItemId === id ? null : state.activeItemId,
+    }));
+  },
+
+  getLinkItemsByBlock: (blockId) => get().linkItems.filter(i => i.blockId === blockId),
+  getLinkItem: (id) => get().linkItems.find(i => i.id === id),
+
+  addCommandItem: (blockId, partial) => {
+    const item = createCommandItem(blockId, partial);
+    set(state => ({ commandItems: [...state.commandItems, item] }));
+    return item;
+  },
+
+  updateCommandItem: (id, updates) => {
+    set(state => ({
+      commandItems: state.commandItems.map(i => 
+        i.id === id ? { ...i, ...updates, updatedAt: new Date().toISOString() } : i
+      ),
+    }));
+  },
+
+  deleteCommandItem: (id) => {
+    set(state => ({
+      commandItems: state.commandItems.filter(i => i.id !== id),
+      activeItemId: state.activeItemId === id ? null : state.activeItemId,
+    }));
+  },
+
+  getCommandItemsByBlock: (blockId) => get().commandItems.filter(i => i.blockId === blockId),
+  getCommandItem: (id) => get().commandItems.find(i => i.id === id),
+}));

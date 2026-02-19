@@ -27,15 +27,8 @@ export function CardsSidebar({ blockId }: CardsSidebarProps) {
   }, [items, filter]);
 
   const handleCreate = () => {
-    const item = addCardItem(blockId, { 
-      title: 'New Card',
-      order: items.length,
-    });
+    const item = addCardItem(blockId, { title: 'New Card', order: items.length });
     setActiveItem(item.id);
-  };
-
-  const toggleCompleted = (id: string, completed: boolean) => {
-    updateCardItem(id, { completed: !completed });
   };
 
   const stats = useMemo(() => {
@@ -46,19 +39,13 @@ export function CardsSidebar({ blockId }: CardsSidebarProps) {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800">
         <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Cards</span>
-        <button
-          onClick={handleCreate}
-          className="p-1 rounded hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300"
-          title="New card"
-        >
+        <button onClick={handleCreate} className="p-1 rounded hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300" title="New card">
           <Plus size={14} />
         </button>
       </div>
       
-      {/* Filters */}
       <div className="flex items-center gap-1 px-3 py-2 border-b border-zinc-800">
         {(['all', 'active', 'completed'] as const).map((f) => (
           <button
@@ -66,35 +53,23 @@ export function CardsSidebar({ blockId }: CardsSidebarProps) {
             onClick={() => setFilter(f)}
             className={cn(
               'px-2 py-1 text-xs rounded transition-colors',
-              filter === f
-                ? 'bg-zinc-800 text-zinc-200'
-                : 'text-zinc-500 hover:text-zinc-300'
+              filter === f ? 'bg-zinc-800 text-zinc-200' : 'text-zinc-500 hover:text-zinc-300'
             )}
           >
-            {f === 'all' ? `All (${stats.total})` :
-             f === 'active' ? `Active (${stats.active})` :
-             `Done (${stats.completed})`}
+            {f === 'all' ? `All (${stats.total})` : f === 'active' ? `Active (${stats.active})` : `Done (${stats.completed})`}
           </button>
         ))}
       </div>
       
-      {/* Card list */}
       <div className="flex-1 overflow-y-auto py-2 px-2 space-y-1">
         {filteredItems.length === 0 ? (
           <div className="text-center py-8 text-zinc-600 text-xs">
             {filter === 'all' ? (
               <>
                 No cards yet.<br />
-                <button
-                  onClick={handleCreate}
-                  className="text-indigo-400 hover:text-indigo-300 mt-2"
-                >
-                  Create your first card
-                </button>
+                <button onClick={handleCreate} className="text-indigo-400 hover:text-indigo-300 mt-2">Create your first card</button>
               </>
-            ) : (
-              `No ${filter} cards`
-            )}
+            ) : `No ${filter} cards`}
           </div>
         ) : (
           filteredItems.map((item) => (
@@ -102,17 +77,12 @@ export function CardsSidebar({ blockId }: CardsSidebarProps) {
               key={item.id}
               className={cn(
                 'group flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-colors',
-                activeItemId === item.id
-                  ? 'bg-zinc-800'
-                  : 'hover:bg-zinc-800/50'
+                activeItemId === item.id ? 'bg-zinc-800' : 'hover:bg-zinc-800/50'
               )}
               onClick={() => setActiveItem(item.id)}
             >
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleCompleted(item.id, item.completed);
-                }}
+                onClick={(e) => { e.stopPropagation(); updateCardItem(item.id, { completed: !item.completed }); }}
                 className="mt-0.5 flex-shrink-0"
               >
                 {item.completed ? (
@@ -121,34 +91,17 @@ export function CardsSidebar({ blockId }: CardsSidebarProps) {
                   <Circle size={16} className="text-zinc-600 hover:text-zinc-400" />
                 )}
               </button>
-              
               <div className="flex-1 min-w-0">
-                <p className={cn(
-                  'text-sm truncate',
-                  item.completed ? 'text-zinc-500 line-through' : 'text-zinc-200'
-                )}>
+                <p className={cn('text-sm truncate', item.completed ? 'text-zinc-500 line-through' : 'text-zinc-200')}>
                   {item.title}
                 </p>
                 {item.tags.length > 0 && (
                   <div className="flex items-center gap-1 mt-1">
                     <Tag size={10} className="text-zinc-600" />
-                    <span className="text-xs text-zinc-600 truncate">
-                      {item.tags.join(', ')}
-                    </span>
+                    <span className="text-xs text-zinc-600 truncate">{item.tags.join(', ')}</span>
                   </div>
                 )}
               </div>
-              
-              {item.priority && (
-                <div
-                  className={cn(
-                    'w-1.5 h-1.5 rounded-full flex-shrink-0',
-                    item.priority === 'high' && 'bg-red-500',
-                    item.priority === 'medium' && 'bg-amber-500',
-                    item.priority === 'low' && 'bg-blue-500'
-                  )}
-                />
-              )}
             </div>
           ))
         )}
