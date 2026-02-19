@@ -11,7 +11,6 @@ import {
   Edit3,
   Trash2,
   Link2,
-  Network,
   Search,
   X,
 } from 'lucide-react';
@@ -22,7 +21,6 @@ import { moduleRegistry, getModule } from '@/modules';
 import { BlockType } from '@/types';
 import { SyncIndicator } from '@/components/sync/SyncIndicator';
 import { SettingsModal } from '@/components/settings/SettingsModal';
-import { GraphView } from '@/components/graph/GraphView';
 import { QuickSwitcher } from '@/components/navigation/QuickSwitcher';
 import { CommandPalette } from '@/components/navigation/CommandPalette';
 import { useHotkeys } from '@/hooks/useHotkeys';
@@ -52,7 +50,6 @@ export function App() {
   const toggleSecondPanel = useUIStore((s) => s.toggleSecondPanel);
   const backlinksOpen = useUIStore((s) => s.backlinksOpen);
   const toggleBacklinks = useUIStore((s) => s.toggleBacklinks);
-  const toggleGraph = useUIStore((s) => s.toggleGraph);
   const openSettings = useUIStore((s) => s.openSettings);
   const openQuickSwitcher = useUIStore((s) => s.openQuickSwitcher);
   const theme = useUIStore((s) => s.theme);
@@ -302,13 +299,7 @@ export function App() {
           >
             <Search size={18} />
           </button>
-          <button
-            onClick={toggleGraph}
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800 transition-colors"
-            title="Graph View"
-          >
-            <Network size={18} />
-          </button>
+
           <button
             onClick={openSettings}
             className="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800 transition-colors"
@@ -461,7 +452,6 @@ export function App() {
       {/* Modals */}
       <QuickSwitcher />
       <CommandPalette />
-      <GraphView />
       <SettingsModal />
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Command, Settings, Network, Moon, Sun, Folder, LayoutGrid, Link, Terminal } from 'lucide-react';
+import { Command, Settings, Moon, Sun, Folder, LayoutGrid, Link, Terminal } from 'lucide-react';
 import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
 import { useUIStore } from '@/stores/useUIStore';
 
@@ -11,7 +11,6 @@ export function CommandPalette() {
   const commandPaletteOpen = useUIStore((s) => s.commandPaletteOpen);
   const closeCommandPalette = useUIStore((s) => s.closeCommandPalette);
   const openSettings = useUIStore((s) => s.openSettings);
-  const toggleGraph = useUIStore((s) => s.toggleGraph);
   const theme = useUIStore((s) => s.theme);
   const updateTheme = useUIStore((s) => s.updateTheme);
   
@@ -22,10 +21,9 @@ export function CommandPalette() {
     { id: 'new-cards', name: 'Create Cards Block', icon: <LayoutGrid size={16} />, action: () => { if (activeWorkspaceId) setActiveBlock(addBlock('cards', activeWorkspaceId).id); } },
     { id: 'new-links', name: 'Create Links Block', icon: <Link size={16} />, action: () => { if (activeWorkspaceId) setActiveBlock(addBlock('links', activeWorkspaceId).id); } },
     { id: 'new-commands', name: 'Create Commands Block', icon: <Terminal size={16} />, action: () => { if (activeWorkspaceId) setActiveBlock(addBlock('commands', activeWorkspaceId).id); } },
-    { id: 'toggle-graph', name: 'Toggle Graph View', icon: <Network size={16} />, action: toggleGraph },
     { id: 'toggle-theme', name: theme.mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode', icon: theme.mode === 'dark' ? <Sun size={16} /> : <Moon size={16} />, action: () => updateTheme({ mode: theme.mode === 'dark' ? 'light' : 'dark' }) },
     { id: 'open-settings', name: 'Open Settings', icon: <Settings size={16} />, action: openSettings },
-  ], [activeWorkspaceId, addBlock, setActiveBlock, toggleGraph, theme.mode, updateTheme, openSettings]);
+  ], [activeWorkspaceId, addBlock, setActiveBlock, theme.mode, updateTheme, openSettings]);
 
   const results = useMemo(() => {
     if (!query) return commands;

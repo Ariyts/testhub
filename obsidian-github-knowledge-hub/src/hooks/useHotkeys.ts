@@ -6,7 +6,6 @@ export function useHotkeys() {
   const openQuickSwitcher = useUIStore((s) => s.openQuickSwitcher);
   const openCommandPalette = useUIStore((s) => s.openCommandPalette);
   const toggleSecondPanel = useUIStore((s) => s.toggleSecondPanel);
-  const toggleGraph = useUIStore((s) => s.toggleGraph);
   const toggleBacklinks = useUIStore((s) => s.toggleBacklinks);
   
   const addFolderItem = useWorkspaceStore((s) => s.addFolderItem);
@@ -34,9 +33,6 @@ export function useHotkeys() {
             setActiveItem(item.id);
           }
         }
-      } else if (isMod && e.key === 'g') {
-        e.preventDefault();
-        toggleGraph();
       } else if (isMod && e.key === '\\') {
         e.preventDefault();
         toggleSecondPanel();
@@ -48,5 +44,5 @@ export function useHotkeys() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [openQuickSwitcher, openCommandPalette, addFolderItem, setActiveItem, activeBlockId, getBlock, toggleGraph, toggleSecondPanel, toggleBacklinks]);
+  }, [openQuickSwitcher, openCommandPalette, addFolderItem, setActiveItem, activeBlockId, getBlock, toggleSecondPanel, toggleBacklinks]);
 }
