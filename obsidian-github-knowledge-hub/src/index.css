@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+/* Base styles */
+html {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Selection */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+/* Focus outline */
+:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.5);
+  outline-offset: 2px;
+}
+
+/* CodeMirror custom styles */
+.cm-editor {
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.cm-editor .cm-line {
+  padding: 0;
+}
+
+.cm-editor .cm-content {
+  padding: 0;
+}
+
+.cm-editor.cm-focused {
+  outline: none;
+}
+
+/* Markdown preview styles */
+.markdown-preview {
+  h1 { font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: #fafafa; }
+  h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.75rem; color: #fafafa; }
+  h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #e4e4e7; }
+  p { margin-bottom: 0.75rem; color: #a1a1aa; }
+  a { color: #6366f1; text-decoration: underline; }
+  code { 
+    background: #18181b; 
+    padding: 0.2em 0.4em; 
+    border-radius: 4px; 
+    font-family: 'JetBrains Mono', monospace;
+    color: #22d3ee;
+    font-size: 0.9em;
+  }
+  pre {
+    background: #18181b;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    border: 1px solid #27272a;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+  }
+  ul, ol { margin-left: 1.5rem; margin-bottom: 0.75rem; }
+  li { margin-bottom: 0.25rem; color: #a1a1aa; }
+  blockquote {
+    border-left: 3px solid #6366f1;
+    padding-left: 1rem;
+    color: #71717a;
+    font-style: italic;
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* Wikilink styles in editor */
+.cm-wikilink {
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 3px;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.cm-wikilink:hover {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+/* Smooth transitions for specific properties */
+button, a {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+/* Disable transitions on inputs for performance */
+input, textarea {
+  transition: border-color 150ms ease;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 150ms ease;
+}
+
+.animate-pulse-subtle {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Graph canvas */
+canvas {
+  image-rendering: -webkit-optimize-contrast;
+}
