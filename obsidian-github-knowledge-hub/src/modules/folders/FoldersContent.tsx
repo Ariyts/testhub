@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FileText, Link2 } from 'lucide-react';
 import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
 import { useUIStore } from '@/stores/useUIStore';
@@ -11,12 +11,17 @@ export function FoldersContent({ blockId }: FoldersContentProps) {
   const activeItemId = useWorkspaceStore((s) => s.activeItemId);
   const getFolderItem = useWorkspaceStore((s) => s.getFolderItem);
   const updateFolderItem = useWorkspaceStore((s) => s.updateFolderItem);
-  const getFolderItemsByBlock = useWorkspaceStore((s) => s.getFolderItemsByBlock);
+  // ✅ FIXED: Select raw data
+  const folderItems = useWorkspaceStore((s) => s.folderItems);
   const setActiveItem = useWorkspaceStore((s) => s.setActiveItem);
   const backlinksOpen = useUIStore((s) => s.backlinksOpen);
   
   const item = activeItemId ? getFolderItem(activeItemId) : null;
-  const allItems = getFolderItemsByBlock(blockId);
+  // ✅ FIXED: Filter in useMemo
+  const allItems = useMemo(
+    () => folderItems.filter((i) => i.blockId === blockId),
+    [folderItems, blockId]
+  );
   const notes = allItems.filter((i) => i.type === 'note');
   const [localContent, setLocalContent] = useState('');
 

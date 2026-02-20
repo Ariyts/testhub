@@ -19,7 +19,8 @@ interface FoldersSidebarProps {
 }
 
 export function FoldersSidebar({ blockId }: FoldersSidebarProps) {
-  const items = useWorkspaceStore((s) => s.getFolderItemsByBlock(blockId));
+  // ✅ FIXED: Select raw data, filter in useMemo
+  const folderItems = useWorkspaceStore((s) => s.folderItems);
   const activeItemId = useWorkspaceStore((s) => s.activeItemId);
   const setActiveItem = useWorkspaceStore((s) => s.setActiveItem);
   const addFolderItem = useWorkspaceStore((s) => s.addFolderItem);
@@ -29,6 +30,12 @@ export function FoldersSidebar({ blockId }: FoldersSidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+
+  // ✅ FIXED: Filter in useMemo to avoid new array on every render
+  const items = useMemo(
+    () => folderItems.filter((i) => i.blockId === blockId),
+    [folderItems, blockId]
+  );
 
   const tree = useMemo(() => {
     const rootItems: FolderItem[] = [];

@@ -8,13 +8,20 @@ interface CardsSidebarProps {
 }
 
 export function CardsSidebar({ blockId }: CardsSidebarProps) {
-  const items = useWorkspaceStore((s) => s.getCardItemsByBlock(blockId));
+  // ✅ FIXED: Select raw data, filter in useMemo
+  const cardItems = useWorkspaceStore((s) => s.cardItems);
   const activeItemId = useWorkspaceStore((s) => s.activeItemId);
   const setActiveItem = useWorkspaceStore((s) => s.setActiveItem);
   const addCardItem = useWorkspaceStore((s) => s.addCardItem);
   const updateCardItem = useWorkspaceStore((s) => s.updateCardItem);
   
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
+
+  // ✅ FIXED: Filter in useMemo to avoid new array on every render
+  const items = useMemo(
+    () => cardItems.filter((i) => i.blockId === blockId),
+    [cardItems, blockId]
+  );
 
   const filteredItems = useMemo(() => {
     return items

@@ -8,7 +8,8 @@ interface CommandsSidebarProps {
 }
 
 export function CommandsSidebar({ blockId }: CommandsSidebarProps) {
-  const items = useWorkspaceStore((s) => s.getCommandItemsByBlock(blockId));
+  // ✅ FIXED: Select raw data, filter in useMemo
+  const commandItems = useWorkspaceStore((s) => s.commandItems);
   const activeItemId = useWorkspaceStore((s) => s.activeItemId);
   const setActiveItem = useWorkspaceStore((s) => s.setActiveItem);
   const addCommandItem = useWorkspaceStore((s) => s.addCommandItem);
@@ -16,6 +17,12 @@ export function CommandsSidebar({ blockId }: CommandsSidebarProps) {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // ✅ FIXED: Filter in useMemo to avoid new array on every render
+  const items = useMemo(
+    () => commandItems.filter((i) => i.blockId === blockId),
+    [commandItems, blockId]
+  );
 
   const filteredItems = useMemo(() => {
     if (!searchQuery) return items;

@@ -8,12 +8,19 @@ interface LinksSidebarProps {
 }
 
 export function LinksSidebar({ blockId }: LinksSidebarProps) {
-  const items = useWorkspaceStore((s) => s.getLinkItemsByBlock(blockId));
+  // ✅ FIXED: Select raw data, filter in useMemo
+  const linkItems = useWorkspaceStore((s) => s.linkItems);
   const activeItemId = useWorkspaceStore((s) => s.activeItemId);
   const setActiveItem = useWorkspaceStore((s) => s.setActiveItem);
   const addLinkItem = useWorkspaceStore((s) => s.addLinkItem);
   
   const [searchQuery, setSearchQuery] = useState('');
+
+  // ✅ FIXED: Filter in useMemo to avoid new array on every render
+  const items = useMemo(
+    () => linkItems.filter((i) => i.blockId === blockId),
+    [linkItems, blockId]
+  );
 
   const filteredItems = useMemo(() => {
     if (!searchQuery) return items;
